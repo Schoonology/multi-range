@@ -1,48 +1,23 @@
-# Mi
+# Multi-range
 
-Mi is the simplest and most obvious way to use multiple inheritance in Javascript that [I](http://schoonology.com) can
-think of. Constructor functions are created the same way, prototype properties and methods are still created the same
-way, and instances are created the same way.
+Multi-range is a simple Node module to parse multiple, positive, integer ranges from a String into an Array of all the
+Numbers therein, inclusive of the ends.
 
-## API
+## Installation
 
-Both of these functions can be called as-is like so:
+    npm install multi-range
+    
+## Examples
 
-```
-function Constructor() {}
-function SubClass() {}
+```javascript
+var range = require('multi-range')
 
-mi.inherit(SubClass, Constructor)
-```
-
-or assigned to the super-most class, and called thusly:
-
-```
-function Constructor() {}
-function SubClass() {}
-
-Constructor.inherit = mi.inherit
-
-Constructor.inherit(SubClass)
+range('1-5') // [1, 2, 3, 4, 5]
+range('1-3,6-8') // [1, 2, 3, 6, 7, 8]
+range('20-22,1-2,7') // [20, 21, 22, 1, 2, 7]
 ```
 
- * `mi.inherit` grants prototypical inheritance just like `util.inherits`. In fact, _it calls util.inherits_, so the
-behaviour should be near-identical. The only difference is "static" methods; those defined as `Constructor.doIt`. Those
-aren't inherited as `SubClass.doIt` with `util`, but they are with `mi`.
-
- * `mi.extend` grants "parasitical" or "mixin" inheritance much like [dotmixin](https://npmjs.org/package/dotmixin),
- [nmix](https://npmjs.org/package/nmix), and others. Unlike `mi.inherit`, `util.inherits` is not used, and typical,
- prototypical inheritance _will not occur_. Instead, the prototype of the "subclass" will have all prototype methods of
- the "superclass" _injected_ into itself.
-
-## Other Considerations
-
- * You still have to call `Constructor.call(this)` in the "subclass" contructor, just as you would normally.
- * You still have to call `Constructor.prototype.doIt.call(this, ...)` in the "subclass"'s `doIt` method, just as you
- would normally.
- * Notice a pattern?
- * The order of `mi.extend` matters. Prototypes that are mixed in later (perhaps obviously) take precedence (read:
- overwrite) those mixed in earlier.
+That's all there is to it.
 
 ## License
 
