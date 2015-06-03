@@ -1,6 +1,6 @@
 {
   "name": "multi-range",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Like range(), but for multiple sets of integers.",
   "main": "multi-range.js",
   "directories": {
