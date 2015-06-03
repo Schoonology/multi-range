@@ -12,17 +12,19 @@ function flatten(arr) {
 }
 
 //
-// Returns an Array of Integers from **from** to **to**, inclusive.
+// Returns an Array of Integers from **from** to **to** by **delta**, inclusive.
 //
-function range(from, to) {
+function range(from, to, delta) {
   var arr = []
 
+  delta = delta || 1
+
   if (from > to) {
-    for (; from >= to; from--) {
+    for (; from >= to; from -= delta) {
       arr.push(from)
     }
   } else {
-    for (; from <= to; from ++) {
+    for (; from <= to; from += delta) {
       arr.push(from)
     }
   }
@@ -34,7 +36,9 @@ function range(from, to) {
 // Returns an Array of Integers based on the content of **str**.
 //
 function parseRange(str) {
-  var numbers = str.split('-')
+  var params = str.split('x')
+  var numbers = params[0].split('-')
+  var delta = parseInt(params[1], 10)
 
   numbers = numbers.map(function (num) {
     return parseInt(num, 10)
@@ -42,7 +46,7 @@ function parseRange(str) {
 
   if (numbers.length > 1) {
     numbers = numbers.reduce(function (prev, curr) {
-      return range(prev, curr)
+      return range(prev, curr, delta)
     })
   }
 
@@ -88,18 +92,53 @@ function compileMultiRange(arr) {
     .reduce(function (arr, curr) {
       var prev = arr[arr.length - 1]
 
-      if (prev && (prev.delta === 0 || prev.delta === curr.delta) && Math.abs(curr.delta) === 1) {
-        prev.value = addToRange(prev.value, curr.value)
-        prev.delta = curr.delta
-        return arr
-      }
+      switch (typeof (prev && prev.value)) {
+        // Adding to an existing range.
+        case 'string':
+          // If we're extending the range, add the number accordingly.
+          if (prev.delta === curr.delta) {
+            prev.value = addToRange(prev.value, curr.value)
+            return arr
+          }
 
-      curr.value = String(curr.value)
-      curr.delta = 0
-      arr.push(curr)
-      return arr
+          // Otherwise, we're breaking the range. Reset the delta accordingly.
+          curr.delta = 0
+          arr.push(curr)
+          return arr
+
+        // Adding to a plain value.
+        case 'number':
+          // If we're the third value with a consistent delta, create a range.
+          prev = arr.slice(-2)
+
+          if (
+            prev.length === 2 &&
+            typeof prev[0].value === 'number' &&
+            typeof prev[1].value === 'number' &&
+            (prev[0].delta === prev[1].delta || prev[0].delta === 0) &&
+            prev[1].delta === curr.delta
+          ) {
+            prev[0].value = prev[0].value + '-' + curr.value
+            prev[0].delta = curr.delta
+            arr.pop()
+            return arr
+          }
+
+          // Purposeful fallthrough.
+          arr.push(curr)
+          return arr
+
+        // We're the first value. Push and continue.
+        default:
+          arr.push(curr)
+          return arr
+      }
     }, [])
     .map(function (obj) {
+      if (typeof obj.value === 'string' && Math.abs(obj.delta) > 1) {
+        return obj.value + 'x' + Math.abs(obj.delta)
+      }
+
       return obj.value
     })
 
